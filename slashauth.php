@@ -359,7 +359,20 @@ function slashauth_options_page()
             Daemon installation instructions
     </h3>
     <p>
-            Hello!
+            Clone the following repository:
+    </p>
+    <pre>
+            git clone https://github.com/supertestnet/Slashauth-daemon.git
+    </pre>
+    <p>
+            Start the daemon with these commands:
+    </p>
+    <pre>
+            npm install
+            npm start
+    </pre>
+    <p>
+            The indicator lights above (next to "Daemon status") should turn green. That's all you need to do!
     </p>
     <h3>
             Set your website's slashtag profile
