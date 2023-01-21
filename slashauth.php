@@ -560,9 +560,8 @@ function slashauth_options_page()
           profile[ "bio" ] = document.getElementById( "slashauth_website_bio" ).value;
           profile[ "image" ] = image;
           var query_url = window.location.protocol + `//` + window.location.hostname + `/wp-admin/admin-ajax.php?action=slashauth_postpage&page_to_query=http://localhost:10249/profile`;
-          var test = await postJson( query_url, JSON.stringify( profile ) );
-          console.log( "yum:", test );
-          //document.getElementsByName( "submit" )[ 0 ].click();
+          await postJson( query_url, JSON.stringify( profile ) );
+          document.getElementsByName( "submit" )[ 0 ].click();
         }
         xhr.open('GET', url );
         xhr.responseType = 'blob';
