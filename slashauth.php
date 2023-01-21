@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Slash Auth
  * Description: Log into a wordpress website via your slashtag
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Super Testnet
  */
 
@@ -122,6 +122,39 @@ function slashauth_getData( $url ) {
   return $mydata;
 }
 
+function slashauth_postData( $url, $json ) {
+  $payload = $json;
+  ob_start();
+  $ch = curl_init();
+  curl_setopt( $ch, CURLOPT_URL, $url );
+  curl_setopt( $ch, CURLOPT_POST, 1 );
+  curl_setopt( $ch, CURLOPT_POSTFIELDS, $payload );
+  $head = curl_exec( $ch );
+  curl_close( $ch );
+  $mydata = ob_get_clean();
+  return $mydata . "woot3";
+}
+
+function slashauth_getpage() {
+  $page_to_query = $_GET[ "page_to_query" ];
+  $data = slashauth_getData( $page_to_query );
+  echo $data;
+  die();
+}
+
+add_action( 'wp_ajax_slashauth_getpage', 'slashauth_getpage' );
+
+function slashauth_postpage() {
+  $page_to_query = $_GET[ "page_to_query" ];
+  $data_to_send = file_get_contents("php://input");
+  //$data_to_send = $_POST[ "data_to_send" ];
+  $data = slashauth_postData( $page_to_query, $data_to_send );
+  echo $data;
+  die();
+}
+
+add_action( 'wp_ajax_slashauth_postpage', 'slashauth_postpage' );
+
 function slashauth_makeClientID() {
   $hex = slashauth_makePassword();
   $hex = substr( $hex, 0, 16 );
@@ -221,7 +254,7 @@ function slashauth_showQR( $atts = array() ) {
           }
           xhttp.open( "GET", url, true );
           xhttp.send();
-    	  });
+        });
       }
       var url = window.location.protocol + "//" +
       window.location.hostname +
@@ -495,7 +528,10 @@ function slashauth_options_page()
         });
       }
       async function getDaemonStatus() {
-        var status = await getData( "http://localhost:10249/status" );
+        var url = window.location.protocol + `//` + window.location.hostname + `/wp-admin/admin-ajax.php?action=slashauth_getpage&page_to_query=http://localhost:10249/status`;
+        ///wp-admin/admin-ajax.php?action=slashauth_getpage&page_to_query=http://localhost:10249/status%3Ftest1%26test2
+        var status = await getData( url );
+        //var status = await getData( "http://localhost:10249/status" );
         if ( !isValidJson( status ) ) {
           document.getElementById( "daemon_running" ).style.color = "red";
           document.getElementById( "connected_to_slashtags_network" ).style.color = "red";
@@ -515,7 +551,7 @@ function slashauth_options_page()
       }
       checkStatusOnLoop();
       async function setProfile() {
-        var url = document.getElementById( "slashauth_website_image" ).value
+        var url = document.getElementById( "slashauth_website_image" ).value;
         var xhr = new XMLHttpRequest();
         xhr.onload = async function() {
           var image = await encodeBase64( xhr.response );
@@ -523,8 +559,10 @@ function slashauth_options_page()
           profile[ "name" ] = document.getElementById( "slashauth_website_name" ).value;
           profile[ "bio" ] = document.getElementById( "slashauth_website_bio" ).value;
           profile[ "image" ] = image;
-          await postJson( "http://localhost:10249/profile", JSON.stringify( profile ) );
-          document.getElementsByName( "submit" )[ 0 ].click();
+          var query_url = window.location.protocol + `//` + window.location.hostname + `/wp-admin/admin-ajax.php?action=slashauth_postpage&page_to_query=http://localhost:10249/profile`;
+          var test = await postJson( query_url, JSON.stringify( profile ) );
+          console.log( "yum:", test );
+          //document.getElementsByName( "submit" )[ 0 ].click();
         }
         xhr.open('GET', url );
         xhr.responseType = 'blob';
